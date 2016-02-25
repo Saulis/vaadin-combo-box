@@ -42,6 +42,23 @@
           comboBox.push('items', 'foo');
           expect(comboBox.$.overlay.$.selector._virtualCount).to.eql(1);
         });
+
+        it('should set focused index on items set', function() {
+          comboBox.value = 'bar';
+
+          comboBox.items = ['foo', 'bar'];
+
+          expect(comboBox._focusedIndex).to.eql(1);
+        });
+
+        it('should set focused index on mutation', function() {
+          comboBox.value = 'baz';
+          comboBox.items = ['foo', 'bar'];
+
+          comboBox.push('items', 'baz');
+
+          expect(comboBox._focusedIndex).to.eql(2);
+        });
       });
 
       describe('value property', function() {

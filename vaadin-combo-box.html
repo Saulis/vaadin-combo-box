@@ -438,8 +438,6 @@ enable usage within an `iron-form`.
     },
 
     _onClosed: function() {
-      this._focusedIndex = this.$.overlay.indexOfLabel(this.$.input.bindValue);
-
       if (this._focusedIndex > -1) {
         this.$.overlay._selectItem(this._focusedIndex);
         this.$.input.bindValue = this._getItemLabel(this.selectedItem);
@@ -459,6 +457,8 @@ enable usage within an `iron-form`.
       this._clearSelectionRange();
 
       this._filter = '';
+
+      this._focusedIndex = this.$.overlay.indexOfLabel(this.$.input.bindValue);
     },
 
     /**
@@ -475,7 +475,6 @@ enable usage within an `iron-form`.
 
     _inputValueChanged: function(e) {
       this._filter = this.$.input.bindValue;
-      this._focusedIndex = this.$.overlay.indexOfLabel(this.$.input.bindValue);
 
       if (!this.opened) {
         this.open();
@@ -510,9 +509,18 @@ enable usage within an `iron-form`.
     },
 
     _filterChanged: function(filter) {
-      if (this.items) {
-        this._setItems(this._filterItems(this.items, filter));
-      }
+      console.log('filter changed');
+      this.unlisten(this.$.overlay, '_selected-item-changed', '_selectedItemChanged');
+
+      this._setItems(this._filterItems(this.items, filter));
+      this._focusedIndex = this.$.overlay.indexOfLabel(filter);
+
+      this.listen(this.$.overlay, '_selected-item-changed', '_selectedItemChanged');
+
+      // async needed to reposition correctly after filtering
+      this.async(function() {
+        this.$.overlay.notifyResize();
+      }.bind(this));
     },
 
     _itemsChanged: function(change) {
@@ -522,6 +530,10 @@ enable usage within an `iron-form`.
     },
 
     _filterItems: function(arr, filter) {
+      if (!arr) {
+        return arr;
+      }
+
       return arr.filter((function(item) {
         filter = filter.toString().toLowerCase() || '';
 
@@ -532,27 +544,21 @@ enable usage within an `iron-form`.
     },
 
     _setItems: function(items) {
-      this.unlisten(this.$.overlay, '_selected-item-changed', '_selectedItemChanged');
-
+      console.log('setitems');
       //TODO: There is something wrong with observers and using set function
       // see here: https://github.com/Polymer/polymer/issues/3254
       //As a workaround setting/notifying the observer with the value undefined helps
       this.$.overlay.notifyPath('_items');
       this.$.overlay.set('_items', items);
 
-      if (this.$.overlay._items && this.$.overlay._items.indexOf(this.selectedItem) > -1) {
-        this.$.overlay._selectItem(this.selectedItem);
-        this._focusedIndex = -1;
+      var valueIndex = this.$.overlay.indexOfLabel(this.value);
+
+      if (valueIndex > -1) {
+        console.log('valueindex', this.$.overlay.$.selector.selectedItem, valueIndex);
+        this.$.overlay._selectItem(valueIndex);
       }
 
       this.$.overlay.hidden = (items === undefined || items === null || items.length === 0);
-
-      this.listen(this.$.overlay, '_selected-item-changed', '_selectedItemChanged');
-
-      // async needed to reposition correctly after filtering
-      this.async(function() {
-        this.$.overlay.notifyResize();
-      }.bind(this));
     },
 
     _indexOfValue: function(value) {
@@ -568,10 +574,12 @@ enable usage within an `iron-form`.
     },
 
     _selectedItemChanged: function(event, detail) {
+      console.log(this.value);
       if (detail.value !== null) {
         this._setSelectedItem(detail.value);
         this.$.input.bindValue = this._getItemLabel(this.selectedItem);
         this.value = this._getItemValue(this.selectedItem);
+        this._focusedIndex = this.$.overlay._items.indexOf(detail.value);
       }
 
       if (this.opened) {
@@ -580,6 +588,7 @@ enable usage within an `iron-form`.
     },
 
     _valueChanged: function(value) {
+      console.log(value);
       if (value === undefined || value === null) {
         this.value = '';
       }
@@ -592,9 +601,8 @@ enable usage within an `iron-form`.
         this.$.input.bindValue = this.allowCustomValue ? value : '';
         this._setSelectedItem(null);
         this.$.overlay.$.selector.clearSelection();
+        this._focusedIndex = -1;
       }
-
-      this._focusedIndex = valueIndex;
 
       this.close();
     },
