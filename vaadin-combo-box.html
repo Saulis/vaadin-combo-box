@@ -438,6 +438,7 @@ enable usage within an `iron-form`.
     },
 
     _onClosed: function() {
+//this._focusedIndex = this.$.overlay.indexOfLabel(this.$.input.bindValue);
       if (this._focusedIndex > -1) {
         this.$.overlay._selectItem(this._focusedIndex);
         this.$.input.bindValue = this._getItemLabel(this.selectedItem);
@@ -457,8 +458,6 @@ enable usage within an `iron-form`.
       this._clearSelectionRange();
 
       this._filter = '';
-
-      this._focusedIndex = this.$.overlay.indexOfLabel(this.$.input.bindValue);
     },
 
     /**
@@ -509,11 +508,10 @@ enable usage within an `iron-form`.
     },
 
     _filterChanged: function(filter) {
-      console.log('filter changed');
       this.unlisten(this.$.overlay, '_selected-item-changed', '_selectedItemChanged');
 
       this._setItems(this._filterItems(this.items, filter));
-      this._focusedIndex = this.$.overlay.indexOfLabel(filter);
+      this._focusedIndex = this.$.overlay.indexOfLabel(this.$.input.bindValue);
 
       this.listen(this.$.overlay, '_selected-item-changed', '_selectedItemChanged');
 
@@ -600,8 +598,8 @@ enable usage within an `iron-form`.
       } else {
         this.$.input.bindValue = this.allowCustomValue ? value : '';
         this._setSelectedItem(null);
-        this.$.overlay.$.selector.clearSelection();
         this._focusedIndex = -1;
+        this.$.overlay.$.selector.clearSelection();
       }
 
       this.close();
