@@ -141,6 +141,7 @@ enable usage within an `iron-form`.
         position-target="[[_positionTarget]]"
         _focused-index="[[_focusedIndex]]"
         _item-label-path="[[itemLabelPath]]"
+        _items="{{_filteredItems}}"
         on-down="_blurInput"
         vertical-offset="2">
     </vaadin-combo-box-overlay>
@@ -164,8 +165,11 @@ enable usage within an `iron-form`.
        * options could be either `String` or `Object`.
        */
       items: {
-        type: Array,
-        observer: '_setItems'
+        type: Array
+      },
+
+      _filteredItems: {
+        type: Array
       },
 
       /**
@@ -257,7 +261,8 @@ enable usage within an `iron-form`.
 
     observers: [
       '_filterChanged(_filter)',
-      '_itemsChanged(items.splices)'
+      '_filteredItemsChanged(_filteredItems, value)',
+      '_itemsChanged(items.*)'
     ],
 
     listeners: {
@@ -314,9 +319,9 @@ enable usage within an `iron-form`.
     _getItemValue: function(item) {
       var value = this.get(this.itemValuePath, item);
       if (value === undefined || value === null) {
-        value = item ? item.toString() : '';
+        value = item || '';
       }
-      return value;
+      return value.toString();
     },
 
     _onArrowDown: function() {
@@ -518,27 +523,28 @@ enable usage within an `iron-form`.
     _filterChanged: function(filter) {
       this.unlisten(this.$.overlay, '_selected-item-changed', '_selectedItemChanged');
 
-      this._setItems(this._filterItems(this.items, filter));
+      this._filteredItems = this._filterItems(this.items, filter);
       this._focusedIndex = this.$.overlay.indexOfLabel(filter);
 
       this.listen(this.$.overlay, '_selected-item-changed', '_selectedItemChanged');
-
-      // async needed to reposition correctly after filtering
-      this.async(function() {
-        this.$.overlay.notifyResize();
-      }.bind(this));
     },
 
     _itemsChanged: function(change) {
       if (change && change.indexSplices) {
-        this._setItems(change.indexSplices[0].object);
+        this._filteredItems = change.indexSplices[0].object;
+      } else if(change && change.base) {
+        this._filteredItems = change.base;
       }
+
+      //TODO: reset filter?
     },
 
     _filterItems: function(arr, filter) {
       if (!arr) {
         return arr;
       }
+
+      arr = arr.base || arr;
 
       return arr.filter((function(item) {
         filter = filter.toString().toLowerCase() || '';
@@ -549,26 +555,32 @@ enable usage within an `iron-form`.
       }).bind(this));
     },
 
-    _setItems: function(items) {
+    _filteredItemsChanged: function(items, value) {
       //TODO: There is something wrong with observers and using set function
       // see here: https://github.com/Polymer/polymer/issues/3254
       //As a workaround setting/notifying the observer with the value undefined helps
-      this.$.overlay.notifyPath('_items');
-      this.$.overlay.set('_items', items);
-
-      var valueIndex = this.$.overlay.indexOfLabel(this.value);
+      //this.$.overlay.notifyPath('_items');
+      //this.$.overlay.set('_items', items);
+      var valueIndex = this._indexOfValue(value, items);
+      console.log(valueIndex, value, this.$.overlay._itemValuePath);
 
       if (valueIndex > -1) {
         this.$.overlay._selectItem(valueIndex);
       }
 
       this.$.overlay.hidden = (items === undefined || items === null || items.length === 0);
+
+      // async needed to reposition correctly after filtering
+      this.async(function() {
+        this.$.overlay.notifyResize();
+      }.bind(this));
     },
 
-    _indexOfValue: function(value) {
-      if (this.items && value) {
-        for (var i = 0; i < this.items.length; i++) {
-          if (this._getItemValue(this.items[i]) === value) {
+    _indexOfValue: function(value, items) {
+      items = items || this.items;
+      if (items && value) {
+        for (var i = 0; i < items.length; i++) {
+          if (this._getItemValue(items[i]) === value) {
             return i;
           }
         }
@@ -598,7 +610,7 @@ enable usage within an `iron-form`.
       var valueIndex = this._indexOfValue(value);
       var item = valueIndex > -1 && this.items[valueIndex];
       if (this.$.overlay._items && item && this.$.overlay._items.indexOf(item) > -1) {
-        this.$.overlay._selectItem(item);
+        //this.$.overlay._selectItem(item);
       } else {
         this.$.input.bindValue = this.allowCustomValue ? value : '';
         this._setSelectedItem(null);

@@ -167,7 +167,7 @@ layout: page
     <p>Notice that the <code>value</code> property of the <code>vaadin-combo-box</code> would always contain the string value, whenever <code>Ojbect</code>s or <code>Strings</code> are used for items. Use the <code>selectedItem</code> property to access the selected item object directly.</p>
 
     <code-example source>
-      <vaadin-combo-box demo class="numbers-box" label="Number"></vaadin-combo-box>
+      <vaadin-combo-box demo class="numbers-box" label="Number" value="1"></vaadin-combo-box>
       <p>Selected item: <span id="selected-item"></span>.</p>
       <p>Value: <span id="value"></span>.</p>
 
@@ -189,7 +189,7 @@ layout: page
             document.querySelector('#value').innerHTML = combobox.value;
           });
 
-          combobox.value = 1;
+          //combobox.value = 1;
           // end-code
         });
       </code>
