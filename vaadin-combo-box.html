@@ -164,8 +164,13 @@ enable usage within an `iron-form`.
        * options could be either `String` or `Object`.
        */
       items: {
+        type: Array
+      },
+
+      _filteredItems: {
         type: Array,
-        observer: '_setItems'
+        observer: '_filteredItemsChanged',
+        computed: '_filterItems(items.*, _filter)'
       },
 
       /**
@@ -216,6 +221,7 @@ enable usage within an `iron-form`.
 
       _filter: {
         type: String,
+        observer: '_filterChanged',
         value: ''
       },
 
@@ -256,8 +262,8 @@ enable usage within an `iron-form`.
     },
 
     observers: [
-      '_filterChanged(_filter)',
-      '_itemsChanged(items.splices)'
+      '_itemsChanged(items.splices)',
+      '_filterdItemsChanged2(_filteredItems.*, value)'
     ],
 
     listeners: {
@@ -451,7 +457,7 @@ enable usage within an `iron-form`.
             this.value = this.$.input.bindValue;
           }
         } else {
-          this.$.input.bindValue = this._getItemLabel(this.selectedItem);
+          //this.$.input.bindValue = this._getItemLabel(this.selectedItem);
         }
       }
 
@@ -508,17 +514,8 @@ enable usage within an `iron-form`.
     },
 
     _filterChanged: function(filter) {
-      this.unlisten(this.$.overlay, '_selected-item-changed', '_selectedItemChanged');
-
-      this._setItems(this._filterItems(this.items, filter));
-      this._focusedIndex = this.$.overlay.indexOfLabel(this.$.input.bindValue);
-
-      this.listen(this.$.overlay, '_selected-item-changed', '_selectedItemChanged');
-
-      // async needed to reposition correctly after filtering
-      this.async(function() {
-        this.$.overlay.notifyResize();
-      }.bind(this));
+      this._filteredItems = this._filterItems(this.items, filter);
+      this._focusedIndex = this.$.overlay.indexOfLabel(this.$.input.bindValue); //TODO use 'filter'?
     },
 
     _itemsChanged: function(change) {
@@ -528,12 +525,15 @@ enable usage within an `iron-form`.
     },
 
     _filterItems: function(arr, filter) {
+      //console.log(arr);
       if (!arr) {
         return arr;
       }
 
+      arr = arr.base || arr;
+      filter = filter.toString().toLowerCase() || '';
+
       return arr.filter((function(item) {
-        filter = filter.toString().toLowerCase() || '';
 
         // Check if item contains input value.
         return this._getItemLabel(item).toString().toLowerCase()
@@ -541,22 +541,31 @@ enable usage within an `iron-form`.
       }).bind(this));
     },
 
-    _setItems: function(items) {
-      console.log('setitems');
+    _filteredItemsChanged: function(items) {
+      //console.log('setitems');
       //TODO: There is something wrong with observers and using set function
       // see here: https://github.com/Polymer/polymer/issues/3254
       //As a workaround setting/notifying the observer with the value undefined helps
       this.$.overlay.notifyPath('_items');
       this.$.overlay.set('_items', items);
 
-      var valueIndex = this.$.overlay.indexOfLabel(this.value);
+      this.$.overlay.hidden = (items === undefined || items === null || items.length === 0);
+
+      // async needed to reposition correctly after filtering
+      this.async(function() {
+        this.$.overlay.notifyResize();
+      }.bind(this));
+    },
+
+    _filterdItemsChanged2: function(items, value) {
+      //TODO: use items
+      var valueIndex = this.$.overlay.indexOfLabel(value);
 
       if (valueIndex > -1) {
-        console.log('valueindex', this.$.overlay.$.selector.selectedItem, valueIndex);
+        this.unlisten(this.$.overlay, '_selected-item-changed', '_selectedItemChanged');
         this.$.overlay._selectItem(valueIndex);
+        this.listen(this.$.overlay, '_selected-item-changed', '_selectedItemChanged');
       }
-
-      this.$.overlay.hidden = (items === undefined || items === null || items.length === 0);
     },
 
     _indexOfValue: function(value) {
@@ -572,7 +581,6 @@ enable usage within an `iron-form`.
     },
 
     _selectedItemChanged: function(event, detail) {
-      console.log(this.value);
       if (detail.value !== null) {
         this._setSelectedItem(detail.value);
         this.$.input.bindValue = this._getItemLabel(this.selectedItem);
@@ -591,12 +599,10 @@ enable usage within an `iron-form`.
         this.value = '';
       }
 
+      this.$.input.bindValue = value;
+
       var valueIndex = this._indexOfValue(value);
-      var item = valueIndex > -1 && this.items[valueIndex];
-      if (this.$.overlay._items && item && this.$.overlay._items.indexOf(item) > -1) {
-        this.$.overlay._selectItem(item);
-      } else {
-        this.$.input.bindValue = this.allowCustomValue ? value : '';
+      if (valueIndex === -1) {
         this._setSelectedItem(null);
         this._focusedIndex = -1;
         this.$.overlay.$.selector.clearSelection();
