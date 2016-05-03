@@ -44,28 +44,107 @@ function test(options, done) {
 }
 
 function testSauce(browsers, done) {
-  test(
-    {
-      expanded: true,
-      browserOptions: {
-        name: localAddress() + ' / ' + new Date(),
-        build: 'vaadin-combo-box'
-      },
-      plugins: {
-        sauce: {
-          username: args.sauceUsername,
-          accessKey: args.sauceAccessKey,
-          browsers: browsers
-        }
-      },
-      extraScripts: args.dom === 'shadow' ? ['test/enable-shadow-dom.js'] : [],
-      root: '.',
-      webserver: {
-        port: 2000,
-        hostname: localAddress()
+  test({
+    expanded: true,
+    browserOptions: {
+      name: localAddress() + ' / ' + new Date(),
+      build: 'vaadin-combo-box'
+    },
+    plugins: {
+      sauce: {
+        username: args.sauceUsername,
+        accessKey: args.sauceAccessKey,
+        browsers: browsers
       }
-    }, done);
+    },
+    extraScripts: args.dom === 'shadow' ? ['test/enable-shadow-dom.js'] : [],
+    root: '.',
+    webserver: {
+      port: 2000,
+      hostname: localAddress()
+    }
+  }, done);
 }
+
+function testBrowserStack(browsers, done) {
+  test({
+    expanded: true,
+    activeBrowsers: [
+    // {
+    //  "browserName": "iPhone 6S",
+    //  "device": "iPhone 6S",
+    //  "os": "iOS",
+    //  "os_version": "9.1",
+    //  "browserstack.local": true
+    // },
+    {
+     //connection refused
+     //"platform": "Linux",
+     "browserName": "Google Nexus 5",
+     "device": "Google Nexus 5",
+     'platform' : 'ANDROID',
+     //  "device": "Samsung Galaxy S5",
+    //  "os": "Linux",
+     "emulator": true,
+    //  "os_version": "5.0",
+     "browserstack.local": true,
+     'browserstack.debug': true
+   },
+    // {
+    //   //"platform": "MAC",
+    //   //"browserName": "iPhone",
+    //   browserName: "safari",
+    //   "version": "9",
+    //   //"device": "iPhone 5S",
+    //   //"device": "Samsung Galaxy S5",
+    //   "os": "OSX",
+    //   //"emulator": true,
+    //   "os_version": "El Capitan",
+    //   "browserstack.local": true
+    // },
+    // {
+    //   'browserName': "chrome",
+    //   "version": "50",
+    //   "os": "Windows",
+    //   "os_version": "10",
+    //   "browserstack.local": true
+    // },
+    // {
+    //   browserName: "firefox",
+    //   "version": "45",
+    //   "os": "Windows",
+    //   "os_version": "10",
+    //   "browserstack.local": true
+    // },
+    // {
+    //   browserName: "internet explorer",
+    //   "version": "11",
+    //   "os": "Windows",
+    //   "os_version": "10",
+    //   "browserstack.local": true
+    // }
+    ],
+    browserOptions: {
+      name: localAddress() + ' / ' + new Date(),
+      build: 'vaadin-combo-box',
+      url: 'http://saulithkp1:sFuZuV3BKTELueK7gqkN@hub.browserstack.com:80/wd/hub',
+      // 'browserName': 'firefox',
+      // 'browserstack.local': true,
+      // 'browserstack.user': 'saulithkp1',
+      // 'browserstack.key': 'sFuZuV3BKTELueK7gqkN'
+    },
+    extraScripts: args.dom === 'shadow' ? ['test/enable-shadow-dom.js'] : [],
+    root: '.',
+    webserver: {
+      port: 2000,
+      hostname: localAddress()
+    }
+  }, done);
+}
+
+gulp.task('test:bs', function(done) {
+  testBrowserStack(['Windows 10/chrome@48'], done);
+});
 
 gulp.task('test:desktop', function(done) {
   testSauce([
@@ -73,44 +152,46 @@ gulp.task('test:desktop', function(done) {
     'Windows 10/firefox@44',
     'Windows 10/microsoftedge@13',
     'Windows 10/internet explorer@11',
-    'OS X 10.11/safari@9.0'], done);
+    'OS X 10.11/safari@9.0'
+  ], done);
 });
 
 gulp.task('test:mobile', function(done) {
   testSauce([
     'OS X 10.11/iphone@9.2',
     'OS X 10.11/ipad@9.2',
-    'Linux/android@5.1'], done);
+    'Linux/android@5.1'
+  ], done);
 });
 
 gulp.task('lint:js', function() {
   return gulp.src([
-        '*.js',
-        'test/*.js'
-      ])
-      .pipe(jshint())
-      .pipe(jshint.reporter())
-      .pipe(jshint.reporter('fail'))
-      .pipe(jscs())
-      .pipe(jscs.reporter())
-      .pipe(jscs.reporter('fail'));
+      '*.js',
+      'test/*.js'
+    ])
+    .pipe(jshint())
+    .pipe(jshint.reporter())
+    .pipe(jshint.reporter('fail'))
+    .pipe(jscs())
+    .pipe(jscs.reporter())
+    .pipe(jscs.reporter('fail'));
 });
 
 gulp.task('lint:html', function() {
   return gulp.src([
-        '*.html',
-        'demo/*.html',
-        'test/*.html'
-      ])
-      .pipe(htmlExtract({
-        sel: 'script, code-example code'
-      }))
-      .pipe(jshint())
-      .pipe(jshint.reporter())
-      .pipe(jshint.reporter('fail'))
-      .pipe(jscs())
-      .pipe(jscs.reporter())
-      .pipe(jscs.reporter('fail'));
+      '*.html',
+      'demo/*.html',
+      'test/*.html'
+    ])
+    .pipe(htmlExtract({
+      sel: 'script, code-example code'
+    }))
+    .pipe(jshint())
+    .pipe(jshint.reporter())
+    .pipe(jshint.reporter('fail'))
+    .pipe(jscs())
+    .pipe(jscs.reporter())
+    .pipe(jscs.reporter('fail'));
 });
 
 gulp.task('test:desktop:shadow', function(done) {
@@ -122,7 +203,7 @@ gulp.task('test:desktop:shadow', function(done) {
     'Windows 10/microsoftedge@13',
     'Windows 10/internet explorer@11',
     'OS X 10.11/safari@9.0'
-    ], done);
+  ], done);
 });
 
 gulp.task('test:mobile:shadow', function(done) {
@@ -131,7 +212,8 @@ gulp.task('test:mobile:shadow', function(done) {
   testSauce([
     'OS X 10.11/iphone@9.2',
     'OS X 10.11/ipad@9.2',
-    'Linux/android@5.1'], done);
+    'Linux/android@5.1'
+  ], done);
 });
 
 gulp.task('typings', function() {
