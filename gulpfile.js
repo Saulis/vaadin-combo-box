@@ -81,13 +81,7 @@ function testNgrok(browsers, done) {
     };
     test({
         expanded: true,
-        activeBrowsers: browsers.map(function(browser) {
-          return {
-                  browserName: browser.split('/')[1].split('@')[0],
-                  platform: browser.split('/')[0],
-                  version: browser.split('/')[1].split('@')[1]
-                };
-        }),
+        activeBrowsers: browsers,
         plugins: ['local'],
         browserOptions: {
           name: localAddress() + ' / ' + new Date(),
@@ -115,18 +109,59 @@ function testNgrok(browsers, done) {
 
 gulp.task('test:desktop', function(done) {
   testNgrok([
-    'Windows 10/chrome@54',
-    'Windows 10/firefox@48',
-    'Windows 10/microsoftedge@13',
-    'Windows 10/internet explorer@11',
-    'OS X 10.11/safari@9.0'], done);
+    desktopBrowser('chrome', 'Windows 10', '54'),
+    desktopBrowser('firefox', 'Windows 10', '49'),
+    desktopBrowser('safari', 'OSX 10.11', '10.0'),
+    desktopBrowser('MicrosoftEdge', 'Windows 10', '14.14393'),
+    desktopBrowser('internet explorer', 'Windows 10', '11')
+    ], done);
+});
+
+var iosBrowser = function(name, version) {
+  return {
+    appiumVersion: '1.6.0',
+    deviceName: name,
+    deviceOrientantion: 'portrait',
+    platformVersion: version,
+    platformName: 'iOS',
+    browserName: 'Safari',
+    recordVideo: false,
+    recordScreenshots: false
+  };
+};
+
+var androidBrowser = function(name, version) {
+  return {
+    browserName: 'Browser',
+    appiumVersion: '1.5.3',
+    deviceName: name,
+    deviceOrientation: 'portrait',
+    platformVersion: version,
+    platformName: 'Android'
+  };
+};
+
+var desktopBrowser = function(name, version, platform) {
+  return {
+    browserName: name,
+    platform: platform,
+    version: version
+  };
+};
+
+gulp.task('test:legacy', function(done) {
+  testNgrok([
+    iosBrowser('iPhone 6 Simulator', '9.3'),
+    iosBrowser('iPad Retina Simulator', '9.3'),
+    desktopBrowser('safari', 'OSX 10.11', '9.0')
+  ], done);
 });
 
 gulp.task('test:mobile', function(done) {
   testNgrok([
-    'OS X 10.11/iphone@9.2',
-    'OS X 10.11/ipad@9.2',
-    'Linux/android@5.1'
+    androidBrowser('Android Emulator', '5.1'),
+    iosBrowser('iPhone 6 Simulator', '10.0'),
+    iosBrowser('iPad Retina Simulator', '10.0'),
   ], done);
 });
 
