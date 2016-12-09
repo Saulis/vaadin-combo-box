@@ -80,17 +80,17 @@ function testNgrok(browsers, done) {
       return runTests(context, dne);
     };
     test({
-        expanded: true,
+        expanded: false,
         activeBrowsers: browsers,
         plugins: ['local'],
         browserOptions: {
           name: localAddress() + ' / ' + new Date(),
           build: 'vaadin-combo-box',
           url: {
-            accessKey: process.env.SAUCE_ACCESS_KEY,
-            hostname:  'ondemand.saucelabs.com',
+            accessKey: 'sFuZuV3BKTELueK7gqkN',
+            hostname:  'hub-cloud.browserstack.com',
             port:      80,
-            username:  process.env.SAUCE_USERNAME,
+            username:  'saulithkp1',
           }
         },
         extraScripts: args.dom === 'shadow' ? ['test/enable-shadow-dom.js'] : [],
@@ -109,44 +109,51 @@ function testNgrok(browsers, done) {
 
 gulp.task('test:desktop', function(done) {
   testNgrok([
-    desktopBrowser('chrome', 'Windows 10', '54'),
-    desktopBrowser('firefox', 'Windows 10', '49'),
-    desktopBrowser('safari', 'OSX 10.11', '10.0'),
-    desktopBrowser('MicrosoftEdge', 'Windows 10', '14.14393'),
-    desktopBrowser('internet explorer', 'Windows 10', '11')
+    desktopBrowser('chrome', 'Windows', '55.0'),
+    // desktopBrowser('firefox', 'Windows 10', '49'),
+    // desktopBrowser('safari', 'OSX 10.11', '10.0'),
+    // desktopBrowser('MicrosoftEdge', 'Windows 10', '14.14393'),
+    // desktopBrowser('internet explorer', 'Windows 10', '11')
     ], done);
 });
 
 var iosBrowser = function(name, version) {
   return {
-    appiumVersion: '1.6.0',
-    deviceName: name,
-    deviceOrientantion: 'portrait',
-    platformVersion: version,
-    platformName: 'iOS',
-    browserName: 'Safari',
-    recordVideo: false,
-    recordScreenshots: false
+    // appiumVersion: '1.6.0',
+    // deviceName: name,
+    // deviceOrientantion: 'portrait',
+    // platformVersion: version,
+    // platformName: 'iOS',
+    // browserName: 'Safari',
+    // recordVideo: false,
+    // recordScreenshots: false
+   'browserName' : name,
+   'platform' : 'MAC',
+   'device' : version
   };
 };
 
 var androidBrowser = function(name, version) {
   return {
-    browserName: 'Browser',
-    appiumVersion: '1.5.3',
-    deviceName: name,
-    deviceOrientation: 'portrait',
-    platformVersion: version,
-    platformName: 'Android'
+    // browserName: 'Browser',
+    // appiumVersion: '1.5.3',
+    // deviceName: name,
+    // deviceOrientation: 'portrait',
+    // platformVersion: version,
+    // platformName: 'Android'
+    'browserName' : 'android',
+    'platform' : 'ANDROID',
+    'device' : name
+
   };
 };
 
 var desktopBrowser = function(name, version, platform) {
   return {
-    browserName: name,
-    platform: platform,
-    version: version
-  };
+    'browserName' : 'android',
+     'platform' : 'ANDROID',
+     'device' : 'Google Nexus 5'
+     };
 };
 
 gulp.task('test:legacy', function(done) {
@@ -159,9 +166,9 @@ gulp.task('test:legacy', function(done) {
 
 gulp.task('test:mobile', function(done) {
   testNgrok([
-    androidBrowser('Android Emulator', '5.1'),
-    iosBrowser('iPhone 6 Simulator', '10.0'),
-    iosBrowser('iPad Retina Simulator', '10.0'),
+    androidBrowser('Google Nexus 5'),
+    iosBrowser('iPhone', 'iPhone 6S'),
+    iosBrowser('iPad', 'iPad Air 2'),
   ], done);
 });
 
