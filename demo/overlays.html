@@ -51,7 +51,7 @@
 
     <demo-snippet>
       <template>
-        <x-vaadin-combo-box></x-vaadin-combo-box>
+        <x-vaadin-combo-box items='["foo", "bar", "baz"]'></x-vaadin-combo-box>
       </template>
     </demo-snippet>
   </div>
@@ -191,9 +191,17 @@
       Polymer({
         is: 'x-vaadin-listbox',
 
+        hostAttributes: {
+          tabindex: 0
+        },
+
         properties: {
           filter: String,
           loading: Boolean
+        },
+
+        listeners: {
+          'keydown': '_onKeydown'
         },
 
         observers: ['_filterChanged(filter)'],
@@ -202,6 +210,10 @@
           this.filter = '';
 
           this.$.list.style.width = this.$.input.clientWidth + 'px';
+        },
+
+        _onKeydown: function(e) {
+          this.$.list._onKeydown(e);
         },
 
         _filterChanged: function(filter) {

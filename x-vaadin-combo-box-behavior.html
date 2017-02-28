@@ -234,7 +234,11 @@
     },
 
     _getItemLabel: function(item) {
-      return this.$.overlay.getItemLabel(item);
+      var label = item ? this.get(this.itemLabelPath, item) : undefined;
+      if (label === undefined) {
+        label = item ? item.toString() : '';
+      }
+      return label;
     },
 
     _getItemValue: function(item) {
@@ -533,13 +537,15 @@
       if (e.path === 'filteredItems' || e.path === 'filteredItems.splices') {
 //        this._setOverlayItems(this.filteredItems);
 
-        this._focusedIndex = (this.opened || this._userDefinedFilter) ?
-            this.$.overlay.indexOfLabel(this.filter) :
-            this._indexOfValue(this.value, this.filteredItems);
+        // TODO:
+        // this._focusedIndex = (this.opened || this._userDefinedFilter) ?
+        //     this.$.overlay.indexOfLabel(this.filter) :
+        //     this._indexOfValue(this.value, this.filteredItems);
 
         // async needed to reposition correctly after filtering
         // (especially when aligned on top of input)
         this.async(function() {
+          this.$.dropdown.notifyResize();
           //this.$.overlay.notifyResize();
         }, 1);
       }

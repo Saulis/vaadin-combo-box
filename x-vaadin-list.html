@@ -1,4 +1,5 @@
 <link rel="import" href="../iron-list/iron-list.html">
+<link rel="import" href="../iron-a11y-keys-behavior/iron-a11y-keys-behavior.html">
 <link rel="import" href="x-vaadin-combo-box-item.html">
 <link rel="import" href="vaadin-spinner.html">
 
@@ -72,10 +73,10 @@
               index="[[index]]"
               item="[[item]]"
               label="[[getItemLabel(item)]]"
-              selected="[[_isItemSelected(item, _selectedItem)]]"
+              selected="[[_isItemSelected(item, selectedItem)]]"
               role$="[[_getAriaRole(index)]]"
-              aria-selected$="[[_getAriaSelected(_focusedIndex,index)]]"
-              focused="[[_isItemFocused(_focusedIndex,index)]]">
+              aria-selected$="[[_getAriaSelected(focusedIndex,index)]]"
+              focused="[[_isItemFocused(focusedIndex,index)]]">
           </x-vaadin-combo-box-item>
         </template>
       </iron-list>
@@ -113,8 +114,9 @@
           observer: 'notifyResize'
         },
 
-        _selectedItem: {
-          type: Object
+        selectedItem: {
+          type: Object,
+          notify: true
         },
 
         _items: {
@@ -123,7 +125,7 @@
 
         items: Array,
 
-        _focusedIndex: {
+        focusedIndex: {
           type: Number,
           notify: true,
           value: -1,
@@ -132,7 +134,7 @@
 
         _focusedItem: {
           type: String,
-          computed: '_getFocusedItem(_focusedIndex)'
+          computed: '_getFocusedItem(focusedIndex)'
         },
 
         _itemLabelPath: {
@@ -148,6 +150,10 @@
         _notTapping: Boolean,
 
         _ignoreTaps: Boolean,
+      },
+
+      listeners: {
+        'keydown': '_onKeydown'
       },
 
       observers: ['_itemsChanged(items)'],
@@ -173,9 +179,49 @@
       _onTap: function(e) {
         if (!this._notTapping && !this._ignoreTaps) {
           //TODO: move selection handling to x-vaadin-list
-          this._selectedItem = e.model.item;
-          this.fire('selection-changed', {item: e.model.item});
+          this.selectedItem = e.model.item;
+          // this.fire('selection-changed', {item: e.model.item});
         }
+      },
+
+      _onKeydown: function(e) {
+        if (this._isEventKey(e, 'down')) {
+          this._onArrowDown();
+
+          // prevent window scrolling
+          e.preventDefault();
+        } else if (this._isEventKey(e, 'up')) {
+          this._onArrowUp();
+
+          // prevent window scrolling
+          e.preventDefault();
+        } else if (this._isEventKey(e, 'enter')) {
+          this._onEnter(e);
+        }
+      },
+
+      _isEventKey: function(e, k) {
+        return Polymer.IronA11yKeysBehavior.keyboardEventMatchesKeys(e, k);
+      },
+
+      _onArrowDown: function() {
+        if (this._items) {
+          this.focusedIndex = Math.min(this._items.length - 1, this.focusedIndex + 1);
+        }
+      },
+
+      _onArrowUp: function() {
+        if (this.focusedIndex > -1) {
+          this.focusedIndex = Math.max(0, this.focusedIndex - 1);
+        } else {
+          if (this._items) {
+            this.focusedIndex = this._items.length - 1;
+          }
+        }
+      },
+
+      _onEnter: function(e) {
+        this.selectedItem = this.items[this.focusedIndex];
       },
 
       _onTouchStart: function() {
@@ -278,7 +324,7 @@
 
       adjustScrollPosition: function() {
         if (this._items) {
-          this._scrollIntoView(this._focusedIndex);
+          this._scrollIntoView(this.focusedIndex);
         }
       },
 
@@ -313,6 +359,11 @@
       updateViewportBoundaries: function() {
         this._cachedViewportTotalPaddingBottom = undefined;
         this.$.selector.updateViewportBoundaries();
+      },
+
+      _unwrapIfNeeded: function(element) {
+        var isWrapped = Polymer.Settings.hasShadow && !Polymer.Settings.nativeShadow;
+        return isWrapped ? window.unwrap(element) : element;
       },
 
       get _viewportTotalPaddingBottom() {

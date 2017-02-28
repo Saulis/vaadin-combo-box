@@ -221,7 +221,7 @@ Custom property | Description | Default
       </template>
     </paper-input-container>
 
-    <x-vaadin-dropdown id="dropdown" opened="[[opened]]" vertical-offset="2">
+    <x-vaadin-dropdown id="dropdown" opened="{{opened}}" vertical-offset="2">
       <template>
         <x-vaadin-list items="[[filteredItems]]" loading="[[loading]]"></x-vaadin-list>
       </template>
@@ -368,6 +368,39 @@ Custom property | Description | Default
       //   readOnly: true
       // },
 
+      /** COMMON DROPDOWN STUFF/
+
+      /**
+       * True if the dropdown is open, false otherwise.
+       */
+      opened: {
+        type: Boolean,
+        notify: true,
+        value: false,
+        reflectToAttribute: true,
+        // observer: '_openedChanged'
+      },
+
+      /**
+       * Set to true to disable this element.
+       */
+      disabled: {
+        type: Boolean,
+        value: false,
+        reflectToAttribute: true
+      },
+
+      /**
+       * When present, it specifies that the element field is read-only.
+       */
+      readonly: {
+        type: Boolean,
+        value: false,
+        reflectToAttribute: true
+      }
+
+      /****/
+
     },
 
     /*** copied methods */
@@ -447,8 +480,6 @@ Custom property | Description | Default
     /*****/
 
     attached: function() {
-      // TODO:
-      this.filteredItems = ['foo', 'bar'];
 
       this._setInputElement(this.$.input);
       this.$.dropdown.positionTarget = this.$.input;

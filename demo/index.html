@@ -13,6 +13,7 @@
   <link rel="import" href="common.html">
 
   <link rel="import" href="../../iron-form/iron-form.html">
+  <link rel="import" href="../../paper-input/paper-input.html">
 </head>
 
 <body unresolved>
@@ -31,7 +32,10 @@
 
     <demo-snippet>
       <template>
-        <vaadin-combo-box id="demo1" label="Element"></vaadin-combo-box>
+        <div style="display: flex">
+          <vaadin-combo-box id="demo1" label="Element" style="margin-right: 5px"></vaadin-combo-box>
+          <paper-input></paper-input>
+        </div>
         <script>
           var combobox = document.querySelector('#demo1');
           // The elements is an array of String values.
