@@ -86,6 +86,8 @@
     Polymer({
       is: 'x-vaadin-list',
 
+      behaviors: [Polymer.IronA11yKeysBehavior],
+
       properties: {
 
         /**
@@ -132,8 +134,9 @@
           observer: '_focusedIndexChanged'
         },
 
-        _focusedItem: {
+        focusedItem: {
           type: String,
+          notify: true,
           computed: '_getFocusedItem(focusedIndex)'
         },
 
@@ -151,12 +154,22 @@
 
         _ignoreTaps: Boolean,
       },
-
-      listeners: {
-        'keydown': '_onKeydown'
-      },
+      //
+      // listeners: {
+      //   'keydown': '_onKeydown'
+      // },
 
       observers: ['_itemsChanged(items)'],
+
+      keyBindings: {
+        'down': '_onArrowDown',
+        'up': '_onArrowUp',
+        'enter': '_onEnter'
+      },
+
+      attached: function() {
+        this.notifyResize();
+      },
 
       _itemsChanged: function(items) {
         this._items = items;
@@ -183,34 +196,36 @@
           // this.fire('selection-changed', {item: e.model.item});
         }
       },
+      //
+      // _onKeydown: function(e) {
+      //   if (this._isEventKey(e, 'down')) {
+      //     this._onArrowDown();
+      //
+      //   } else if (this._isEventKey(e, 'up')) {
+      //     this._onArrowUp();
+      //
+      //   } else if (this._isEventKey(e, 'enter')) {
+      //     this._onEnter(e);
+      //   }
+      // },
+      //
+      // _isEventKey: function(e, k) {
+      //   return Polymer.IronA11yKeysBehavior.keyboardEventMatchesKeys(e, k);
+      // },
 
-      _onKeydown: function(e) {
-        if (this._isEventKey(e, 'down')) {
-          this._onArrowDown();
+      _onArrowDown: function(e) {
+        // prevent window scrolling
+        e.preventDefault();
 
-          // prevent window scrolling
-          e.preventDefault();
-        } else if (this._isEventKey(e, 'up')) {
-          this._onArrowUp();
-
-          // prevent window scrolling
-          e.preventDefault();
-        } else if (this._isEventKey(e, 'enter')) {
-          this._onEnter(e);
-        }
-      },
-
-      _isEventKey: function(e, k) {
-        return Polymer.IronA11yKeysBehavior.keyboardEventMatchesKeys(e, k);
-      },
-
-      _onArrowDown: function() {
         if (this._items) {
           this.focusedIndex = Math.min(this._items.length - 1, this.focusedIndex + 1);
         }
       },
 
-      _onArrowUp: function() {
+      _onArrowUp: function(e) {
+        // prevent window scrolling
+        e.preventDefault();
+
         if (this.focusedIndex > -1) {
           this.focusedIndex = Math.max(0, this.focusedIndex - 1);
         } else {

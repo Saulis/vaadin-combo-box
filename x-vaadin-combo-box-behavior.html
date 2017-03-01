@@ -152,7 +152,8 @@
       '_itemsChanged(items.*, itemValuePath, itemLabelPath)',
       '_filteredItemsChanged(filteredItems.*, itemValuePath, itemLabelPath)',
       '_loadingChanged(loading)',
-      '_selectedItemChanged(selectedItem)'
+      '_selectedItemChanged(selectedItem)',
+      '_focusedItemChanged(_focusedItem)'
     ],
 
     listeners: {
@@ -173,9 +174,10 @@
     },
 
     _onBlur: function() {
-      if (!this._closeOnBlurIsPrevented) {
-        this.close();
-      }
+      // TODO: why is this needed? for tabbing/moving to next focusable in iOS?
+      // if (!this._closeOnBlurIsPrevented) {
+      //   this.close();
+      // }
     },
 
     _onOverlayDown: function(event) {
@@ -210,14 +212,14 @@
     _onKeyDown: function(e) {
       if (this._isEventKey(e, 'down')) {
         this._closeOnBlurIsPrevented = true;
-        this._onArrowDown();
+        this._onArrowDown(e);
         this._closeOnBlurIsPrevented = false;
 
         // prevent caret from moving
         e.preventDefault();
       } else if (this._isEventKey(e, 'up')) {
         this._closeOnBlurIsPrevented = true;
-        this._onArrowUp();
+        this._onArrowUp(e);
         this._closeOnBlurIsPrevented = false;
 
         // prevent caret from moving
@@ -249,12 +251,13 @@
       return value;
     },
 
-    _onArrowDown: function() {
+    _onArrowDown: function(e) {
       if (this.opened) {
-        if (this.$.overlay._items) {
-          this._focusedIndex = Math.min(this.$.overlay._items.length - 1, this._focusedIndex + 1);
-          this._prefillFocusedItemLabel();
-        }
+        // this.$.dropdown.dispatchEvent(e);
+        // if (this.$.overlay._items) {
+        //   this._focusedIndex = Math.min(this.$.overlay._items.length - 1, this._focusedIndex + 1);
+        //   this._prefillFocusedItemLabel();
+        // }
       } else {
         this.open();
       }
@@ -262,31 +265,43 @@
 
     _onArrowUp: function() {
       if (this.opened) {
-        if (this._focusedIndex > -1) {
-          this._focusedIndex = Math.max(0, this._focusedIndex - 1);
-        } else {
-          if (this.$.overlay._items) {
-            this._focusedIndex = this.$.overlay._items.length - 1;
-          }
-        }
-
-        this._prefillFocusedItemLabel();
+        // if (this._focusedIndex > -1) {
+        //   this._focusedIndex = Math.max(0, this._focusedIndex - 1);
+        // } else {
+        //   if (this.$.overlay._items) {
+        //     this._focusedIndex = this.$.overlay._items.length - 1;
+        //   }
+        // }
+        //
+        // this._prefillFocusedItemLabel();
       } else {
         this.open();
       }
     },
 
-    _prefillFocusedItemLabel: function() {
-      if (this._focusedIndex > -1) {
+    _focusedItemChanged: function(focusedItem) {
+      if (focusedItem) {
         // Reset the input value asyncronously to prevent partial value changes
         // announce. Makes OSX VoiceOver to announce the complete value instead.
         this._inputElementValue = '';
         this.async(function() {
-          this._inputElementValue = this._getItemLabel(this.$.overlay._focusedItem);
+          this._inputElementValue = this._getItemLabel(focusedItem);
           this._setSelectionRange();
         }, 1); // 1ms delay needed for OSX VoiceOver to realise input value was reset
       }
     },
+    //
+    // _prefillFocusedItemLabel: function() {
+    //   if (this._focusedIndex > -1) {
+    //     // Reset the input value asyncronously to prevent partial value changes
+    //     // announce. Makes OSX VoiceOver to announce the complete value instead.
+    //     this._inputElementValue = '';
+    //     this.async(function() {
+    //       this._inputElementValue = this._getItemLabel(this.$.overlay._focusedItem);
+    //       this._setSelectionRange();
+    //     }, 1); // 1ms delay needed for OSX VoiceOver to realise input value was reset
+    //   }
+    // },
 
     _setSelectionRange: function() {
       if (this.inputElement.setSelectionRange) {
@@ -381,11 +396,11 @@
     },
 
     _onClosed: function() {
-      if (this._focusedIndex > -1) {
-        var focusedItem = this.$.overlay._items[this._focusedIndex];
-        if (this.selectedItem !== focusedItem) {
-          this.selectedItem = focusedItem;
-        }
+      if (this._focusedItem) {
+        // var focusedItem = this.$.overlay._items[this._focusedIndex];
+        // if (this.selectedItem !== focusedItem) {
+        //   this.selectedItem = focusedItem;
+        // }
         // make sure input field is updated in case value doesn't change (i.e. FOO -> foo)
         this._inputElementValue = this._getItemLabel(this.selectedItem);
       } else if (this._inputElementValue === '') {

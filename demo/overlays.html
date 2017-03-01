@@ -95,15 +95,18 @@
           display: block;
         }
       </style>
-      <label id="label" on-tap="_open">[[selected]]</label>
-      <x-vaadin-dropdown id="dropdown">
+      <label id="label" tabindex="0" on-tap="_open">[[selected]]</label>
+      <x-vaadin-dropdown id="dropdown" opened="{{opened}}">
         <template>
           <style>
             x-vaadin-list {
               width: 100px;
             }
           </style>
-          <x-vaadin-list id="list" items="[[items]]" on-selection-changed="_selectionChanged"></x-vaadin-list>
+          <x-vaadin-list id="list" items="[[items]]"
+            on-selected-item-changed="_selectionChanged"
+            on-click="_close"
+            key-event-target="[[_keyEventTarget]]"></x-vaadin-list>
         </template>
       </x-vaadin-dropdown>
     </template>
@@ -111,12 +114,21 @@
       Polymer({
         is: 'x-vaadin-dropdown-menu',
 
+        behaviors: [Polymer.IronA11yKeysBehavior],
+
         properties: {
-          selected: String
+          selected: String,
+          opened: Boolean
+        },
+
+        keyBindings: {
+          'esc': '_onEsc',
+          'enter': '_onEnter'
         },
 
         ready: function() {
           this.selected = 'Select Value';
+          this._keyEventTarget = this.$.label;
           this.$.dropdown.positionTarget = this.$.label;
           this.items = ['foo', 'bar', 'baz'];
         },
@@ -126,8 +138,28 @@
         },
 
         _selectionChanged: function(e) {
-          this.$.dropdown.opened = false;
-          this.selected = e.detail.item;
+          this.selected = e.detail.value;
+
+          // TODO: quick hack to bypass the opening caused by enter.
+          this.async(function() {
+            this._close();
+          }, 1);
+        },
+
+        _onEsc: function(e) {
+          this._close();
+        },
+
+        _onEnter: function(e) {
+          this.opened = true;
+        },
+
+        _open: function(e) {
+          this.opened = true;
+        },
+
+        _close: function(e) {
+          this.opened = false;
         }
       });
     </script>
@@ -142,14 +174,14 @@
         }
       </style>
       <button id="button" on-tap="_open">Show</button>
-      <x-vaadin-dropdown id="dropdown">
+      <x-vaadin-dropdown id="dropdown" opened="{{opened}}">
         <template>
           <style>
             x-vaadin-list {
               width: 100px;
             }
           </style>
-          <x-vaadin-list id="list" items="[[items]]" on-selection-changed="_selectionChanged"></x-vaadin-list>
+          <x-vaadin-list items="[[items]]" on-click="_close" key-event-target="[[_keyEventTarget]]"></x-vaadin-list>
         </template>
       </x-vaadin-dropdown>
     </template>
@@ -157,17 +189,40 @@
       Polymer({
         is: 'x-vaadin-menu-button',
 
+        behaviors: [Polymer.IronA11yKeysBehavior],
+
+        properties: {
+          opened: Boolean
+        },
+
+        keyBindings: {
+          'esc': '_onEsc',
+          'enter': '_onEnter'
+        },
+
         ready: function() {
+          this._keyEventTarget = this.$.button;
           this.$.dropdown.positionTarget = this.$.button;
           this.items = ['foo', 'bar', 'baz'];
         },
 
-        _open: function(e) {
-          this.$.dropdown.opened = true;
+        _onEsc: function(e) {
+          this._close();
         },
 
-        _selectionChanged: function(e) {
-          this.$.dropdown.opened = false;
+        _onEnter: function(e) {
+          if (this.opened) {
+            e.preventDefault();
+            this._close();
+          }
+        },
+
+        _open: function(e) {
+          this.opened = true;
+        },
+
+        _close: function(e) {
+          this.opened = false;
         }
       });
     </script>
@@ -180,39 +235,39 @@
           display: block;
         }
 
+        x-vaadin-list:focus {
+          outline: none;
+        }
+
         x-vaadin-list {
           border: 1px solid black;
+          width: 200px;
         }
       </style>
-      <input id="input" readonly>
-      <x-vaadin-list id="list" items="[[items]]" loading="[[loading]]"></x-vaadin-list>
+      <x-vaadin-list id="list" tabindex="0" items="[[items]]" loading="[[loading]]"></x-vaadin-list>
     </template>
     <script>
       Polymer({
         is: 'x-vaadin-listbox',
-
-        hostAttributes: {
-          tabindex: 0
-        },
 
         properties: {
           filter: String,
           loading: Boolean
         },
 
-        listeners: {
-          'keydown': '_onKeydown'
-        },
+        // listeners: {
+        //   'keydown': '_onKeydown'
+        // },
 
         observers: ['_filterChanged(filter)'],
 
         attached: function() {
           this.filter = '';
-
-          this.$.list.style.width = this.$.input.clientWidth + 'px';
+          // this.$.list.keyEventTarget = this;
         },
 
         _onKeydown: function(e) {
+          console.log(e);
           this.$.list._onKeydown(e);
         },
 

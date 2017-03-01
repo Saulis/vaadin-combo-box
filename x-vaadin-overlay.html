@@ -107,7 +107,7 @@
 
       this._addOutsideClickListener();
 
-     this.fire('vaadin-overlay-opened');
+      this.fire('vaadin-overlay-opened');
     },
 
     _close: function() {
@@ -115,7 +115,7 @@
 
       this._removeOutsideClickListener();
 
-     this.fire('vaadin-overlay-closed');
+      this.fire('vaadin-overlay-closed');
     },
 
     // We need to listen on 'click' / 'tap' event and capture it and close the overlay before

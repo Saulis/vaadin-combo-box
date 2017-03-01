@@ -223,7 +223,7 @@ Custom property | Description | Default
 
     <x-vaadin-dropdown id="dropdown" opened="{{opened}}" vertical-offset="2">
       <template>
-        <x-vaadin-list items="[[filteredItems]]" loading="[[loading]]"></x-vaadin-list>
+        <x-vaadin-list items="[[_listItems(filteredItems, opened)]]" on-click="close" loading="[[loading]]" key-event-target="[[_keyEventTarget]]" focused-item="{{_focusedItem}}" selected-item="{{selectedItem}}"></x-vaadin-list>
       </template>
     </x-vaadin-dropdown>
 
@@ -397,10 +397,18 @@ Custom property | Description | Default
         type: Boolean,
         value: false,
         reflectToAttribute: true
+      },
+
+      _focusedItem: {
+        type: Object
       }
 
       /****/
 
+    },
+
+    _listItems: function(filteredItems, opened) {
+      return filteredItems.slice(0);
     },
 
     /*** copied methods */
@@ -478,6 +486,10 @@ Custom property | Description | Default
     // },
 
     /*****/
+
+    ready: function() {
+      this._keyEventTarget = this.$.input;
+    },
 
     attached: function() {
 
