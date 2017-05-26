@@ -29,6 +29,10 @@
         value: false
       },
 
+      multiSelect: {
+        type: Boolean
+      },
+
       /**
        * A subset of items, filtered based on the user input. Filtered items
        * can be assigned directly to omit the internal filtering functionality.
@@ -528,7 +532,18 @@
         }
       }
 
-      this.$.overlay._selectedItem = selectedItem;
+      // this.$.overlay._selectedItem = selectedItem;
+      this.$.overlay._selectedItems = this.$.overlay._selectedItems || [];
+      var index = this.$.overlay._selectedItems.indexOf(selectedItem);
+      if (!selectedItem) {
+        this.$.overlay.pop('_selectedItems');
+      } else if (index >= 0) {
+        this.$.overlay.splice('_selectedItems', index, 1);
+      } else {
+        this.$.overlay.push('_selectedItems', selectedItem);
+      }
+      this.selectedItems = this.$.overlay._selectedItems.slice(0);
+
       this._focusedIndex = this.filteredItems.indexOf(selectedItem);
     },
 
@@ -651,7 +666,7 @@
         this.selectedItem = e.detail.item;
       }
 
-      if (this.opened) {
+      if (this.opened && !this.multiSelect) {
         this.close();
       }
 

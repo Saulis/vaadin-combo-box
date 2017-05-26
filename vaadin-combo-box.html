@@ -76,6 +76,7 @@ Custom property | Description | Default
 <link rel="import" href="vaadin-combo-box-overlay.html">
 <link rel="import" href="vaadin-combo-box-shared-styles.html">
 <link rel="import" href="vaadin-combo-box-icons.html">
+<link rel="import" href="../paper-chip/paper-chip.html">
 
 <dom-module id="vaadin-combo-box">
   <template>
@@ -238,7 +239,17 @@ Custom property | Description | Default
 
       <!-- TODO (web-padawan): remove "suffix" attributes for 2.0 -->
       <div slot="suffix" suffix>
-        <span>
+        <template is="dom-repeat" items="[[selectedItems]]">
+          <span>
+            <paper-chip removable>
+              <iron-icon class="icon" icon="avatars:avatar-1"></iron-icon>
+              <div slot="label">[[item]]</div>
+              <div slot="caption">jdoe@example.com</div>
+            </paper-chip>
+          </span>
+        </template>
+
+        <span hidden$="[[multiSelect]]">
           <slot name="clear-button">
             <paper-icon-button id="clearIcon"
               tabindex="-1"
@@ -274,6 +285,7 @@ Custom property | Description | Default
       on-down="_onOverlayDown"
       loading="[[loading]]"
       on-mousedown="_preventDefault"
+      multi-select="[[multiSelect]]"
       vertical-offset="2">
     </vaadin-combo-box-overlay>
   </template>

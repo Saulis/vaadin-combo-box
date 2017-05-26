@@ -95,7 +95,8 @@
               index="[[index]]"
               item="[[item]]"
               label="[[getItemLabel(item)]]"
-              selected="[[_isItemSelected(item, _selectedItem)]]"
+              multi-select="[[multiSelect]]"
+              selected="[[_isItemSelected(item, _selectedItems.*)]]"
               role$="[[_getAriaRole(index)]]"
               aria-selected$="[[_getAriaSelected(_focusedIndex,index)]]"
               focused="[[_isItemFocused(_focusedIndex,index)]]">
@@ -142,8 +143,8 @@
         observer: 'notifyResize'
       },
 
-      _selectedItem: {
-        type: Object
+      _selectedItems: {
+        type: Array
       },
 
       _items: {
@@ -216,8 +217,8 @@
       }
     },
 
-    _isItemSelected: function(item, selectedItem) {
-      return item === selectedItem;
+    _isItemSelected: function(item, splices) {
+      return this._selectedItems.indexOf(item) >= 0;
     },
 
     _onTap: function(e) {
