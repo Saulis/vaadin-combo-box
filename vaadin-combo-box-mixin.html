@@ -6,6 +6,7 @@ This program is available under Apache License Version 2.0, available at https:/
 
 <link rel="import" href="../polymer/polymer-element.html">
 <link rel="import" href="../polymer/lib/mixins/gesture-event-listeners.html">
+<link rel="import" href="../polymer/lib/utils/async.html">
 
 <link rel="import" href="../iron-form-element-behavior/iron-form-element-behavior.html">
 <link rel="import" href="../iron-a11y-announcer/iron-a11y-announcer.html">
@@ -63,10 +64,7 @@ This program is available under Apache License Version 2.0, available at https:/
         value: {
           type: String,
           observer: '_valueChanged',
-          // notify: true already set in IronFormBehavior in Polymer 1.x
-          // hence setting it to false to avoid two value-changed events.
-          // In 2.0 we need to set to true though.
-          notify: !!Polymer.Element
+          notify: true
         },
 
         /**
@@ -222,7 +220,7 @@ This program is available under Apache License Version 2.0, available at https:/
     _onTap(e) {
       this._closeOnBlurIsPrevented = true;
 
-      var path = Polymer.dom(e).path;
+      var path = e.composedPath();
       if (path.indexOf(this._clearElement) !== -1) {
         this._clear();
       } else if (path.indexOf(this._toggleElement) !== -1) {
@@ -308,10 +306,14 @@ This program is available under Apache License Version 2.0, available at https:/
         // Reset the input value asyncronously to prevent partial value changes
         // announce. Makes OSX VoiceOver to announce the complete value instead.
         this._inputElementValue = '';
+<<<<<<< Updated upstream
         this.async(() => {
+=======
+        Polymer.Async.timeOut.after(1).run(() => {
+>>>>>>> Stashed changes
           this._inputElementValue = this._getItemLabel(this.$.overlay._focusedItem);
           this._setSelectionRange();
-        }, 1); // 1ms delay needed for OSX VoiceOver to realise input value was reset
+        }); // 1ms delay needed for OSX VoiceOver to realise input value was reset
       }
     }
 
@@ -353,7 +355,7 @@ This program is available under Apache License Version 2.0, available at https:/
     _openAsync() {
       // Needed for MS Edge. Otherwise, it does not pop the virtual keyboard up
       // when tapping the combobox that has non-empty value.
-      this.async(this.open);
+      Polymer.Async.microTask.run(this.open);
     }
 
     /**
@@ -409,8 +411,8 @@ This program is available under Apache License Version 2.0, available at https:/
 
       // Ensure metrics are up-to-date
       this.$.overlay.updateViewportBoundaries();
-      this.$.overlay.async(this.$.overlay.adjustScrollPosition);
-      this.$.overlay.$.dropdown.async(this.$.overlay.$.dropdown.notifyResize, 1);
+      Polymer.Async.microTask.run(() => this.$.overlay.adjustScrollPosition());
+      Polymer.Async.timeOut.after(1).run(() => this.$.overlay.$.dropdown.notifyResize());
 
       // Set body pointer-events to 'none' to disable mouse interactions with
       // other document nodes (combo-box is "modal")
@@ -458,7 +460,7 @@ This program is available under Apache License Version 2.0, available at https:/
      */
     _inputValueChanged(e) {
       // Handle only input events from our inputElement.
-      if (Polymer.dom(e).path.indexOf(this.inputElement) !== -1) {
+      if (e.composedPath().indexOf(this.inputElement) !== -1) {
         this._inputElementValue = this.inputElement.value;
         this._filterFromInput();
       }
@@ -613,9 +615,13 @@ This program is available under Apache License Version 2.0, available at https:/
 
         // async needed to reposition correctly after filtering
         // (especially when aligned on top of input)
+<<<<<<< Updated upstream
         this.async(() => {
+=======
+        Polymer.Async.timeOut.after(1).run(() => {
+>>>>>>> Stashed changes
           this.$.overlay.$.dropdown.notifyResize();
-        }, 1);
+        });
       }
     }
 
@@ -705,7 +711,7 @@ This program is available under Apache License Version 2.0, available at https:/
     _ensureTemplatized() {
       if (!this._templatized) {
         this._templatized = true;
-        this._itemTemplate = Polymer.dom(this).querySelector('template');
+        this._itemTemplate = this.querySelector('template');
         if (this._itemTemplate) {
           this.templatize(this._itemTemplate);
         }
